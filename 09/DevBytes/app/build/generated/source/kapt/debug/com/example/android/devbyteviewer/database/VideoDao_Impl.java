@@ -8,11 +8,13 @@ import androidx.room.RoomSQLiteQuery;
 import androidx.room.util.CursorUtil;
 import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
+import java.lang.Class;
 import java.lang.Exception;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.SuppressWarnings;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -20,14 +22,14 @@ import java.util.concurrent.Callable;
 public final class VideoDao_Impl implements VideoDao {
   private final RoomDatabase __db;
 
-  private final EntityInsertionAdapter __insertionAdapterOfDatabaseVideo;
+  private final EntityInsertionAdapter<DatabaseVideo> __insertionAdapterOfDatabaseVideo;
 
   public VideoDao_Impl(RoomDatabase __db) {
     this.__db = __db;
     this.__insertionAdapterOfDatabaseVideo = new EntityInsertionAdapter<DatabaseVideo>(__db) {
       @Override
       public String createQuery() {
-        return "INSERT OR REPLACE INTO `DatabaseVideo`(`url`,`updated`,`title`,`description`,`thumbnail`) VALUES (?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `DatabaseVideo` (`url`,`updated`,`title`,`description`,`thumbnail`) VALUES (?,?,?,?,?)";
       }
 
       @Override
@@ -80,7 +82,7 @@ public final class VideoDao_Impl implements VideoDao {
     return __db.getInvalidationTracker().createLiveData(new String[]{"databasevideo"}, false, new Callable<List<DatabaseVideo>>() {
       @Override
       public List<DatabaseVideo> call() throws Exception {
-        final Cursor _cursor = DBUtil.query(__db, _statement, false);
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
         try {
           final int _cursorIndexOfUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "url");
           final int _cursorIndexOfUpdated = CursorUtil.getColumnIndexOrThrow(_cursor, "updated");
@@ -91,15 +93,35 @@ public final class VideoDao_Impl implements VideoDao {
           while(_cursor.moveToNext()) {
             final DatabaseVideo _item;
             final String _tmpUrl;
-            _tmpUrl = _cursor.getString(_cursorIndexOfUrl);
+            if (_cursor.isNull(_cursorIndexOfUrl)) {
+              _tmpUrl = null;
+            } else {
+              _tmpUrl = _cursor.getString(_cursorIndexOfUrl);
+            }
             final String _tmpUpdated;
-            _tmpUpdated = _cursor.getString(_cursorIndexOfUpdated);
+            if (_cursor.isNull(_cursorIndexOfUpdated)) {
+              _tmpUpdated = null;
+            } else {
+              _tmpUpdated = _cursor.getString(_cursorIndexOfUpdated);
+            }
             final String _tmpTitle;
-            _tmpTitle = _cursor.getString(_cursorIndexOfTitle);
+            if (_cursor.isNull(_cursorIndexOfTitle)) {
+              _tmpTitle = null;
+            } else {
+              _tmpTitle = _cursor.getString(_cursorIndexOfTitle);
+            }
             final String _tmpDescription;
-            _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
+            if (_cursor.isNull(_cursorIndexOfDescription)) {
+              _tmpDescription = null;
+            } else {
+              _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
+            }
             final String _tmpThumbnail;
-            _tmpThumbnail = _cursor.getString(_cursorIndexOfThumbnail);
+            if (_cursor.isNull(_cursorIndexOfThumbnail)) {
+              _tmpThumbnail = null;
+            } else {
+              _tmpThumbnail = _cursor.getString(_cursorIndexOfThumbnail);
+            }
             _item = new DatabaseVideo(_tmpUrl,_tmpUpdated,_tmpTitle,_tmpDescription,_tmpThumbnail);
             _result.add(_item);
           }
@@ -114,5 +136,9 @@ public final class VideoDao_Impl implements VideoDao {
         _statement.release();
       }
     });
+  }
+
+  public static List<Class<?>> getRequiredConverters() {
+    return Collections.emptyList();
   }
 }

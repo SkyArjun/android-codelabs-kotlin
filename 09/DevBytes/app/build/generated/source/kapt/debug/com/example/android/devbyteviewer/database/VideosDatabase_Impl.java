@@ -4,6 +4,9 @@ import androidx.room.DatabaseConfiguration;
 import androidx.room.InvalidationTracker;
 import androidx.room.RoomOpenHelper;
 import androidx.room.RoomOpenHelper.Delegate;
+import androidx.room.RoomOpenHelper.ValidationResult;
+import androidx.room.migration.AutoMigrationSpec;
+import androidx.room.migration.Migration;
 import androidx.room.util.DBUtil;
 import androidx.room.util.TableInfo;
 import androidx.room.util.TableInfo.Column;
@@ -13,12 +16,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import androidx.sqlite.db.SupportSQLiteOpenHelper.Callback;
 import androidx.sqlite.db.SupportSQLiteOpenHelper.Configuration;
-import java.lang.IllegalStateException;
+import java.lang.Class;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.SuppressWarnings;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings({"unchecked", "deprecation"})
@@ -32,12 +38,17 @@ public final class VideosDatabase_Impl extends VideosDatabase {
       public void createAllTables(SupportSQLiteDatabase _db) {
         _db.execSQL("CREATE TABLE IF NOT EXISTS `DatabaseVideo` (`url` TEXT NOT NULL, `updated` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `thumbnail` TEXT NOT NULL, PRIMARY KEY(`url`))");
         _db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        _db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"476a1b31bec62073ae29ab92ddd8c406\")");
+        _db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '476a1b31bec62073ae29ab92ddd8c406')");
       }
 
       @Override
       public void dropAllTables(SupportSQLiteDatabase _db) {
         _db.execSQL("DROP TABLE IF EXISTS `DatabaseVideo`");
+        if (mCallbacks != null) {
+          for (int _i = 0, _size = mCallbacks.size(); _i < _size; _i++) {
+            mCallbacks.get(_i).onDestructiveMigration(_db);
+          }
+        }
       }
 
       @Override
@@ -70,22 +81,23 @@ public final class VideosDatabase_Impl extends VideosDatabase {
       }
 
       @Override
-      protected void validateMigration(SupportSQLiteDatabase _db) {
+      protected RoomOpenHelper.ValidationResult onValidateSchema(SupportSQLiteDatabase _db) {
         final HashMap<String, TableInfo.Column> _columnsDatabaseVideo = new HashMap<String, TableInfo.Column>(5);
-        _columnsDatabaseVideo.put("url", new TableInfo.Column("url", "TEXT", true, 1));
-        _columnsDatabaseVideo.put("updated", new TableInfo.Column("updated", "TEXT", true, 0));
-        _columnsDatabaseVideo.put("title", new TableInfo.Column("title", "TEXT", true, 0));
-        _columnsDatabaseVideo.put("description", new TableInfo.Column("description", "TEXT", true, 0));
-        _columnsDatabaseVideo.put("thumbnail", new TableInfo.Column("thumbnail", "TEXT", true, 0));
+        _columnsDatabaseVideo.put("url", new TableInfo.Column("url", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsDatabaseVideo.put("updated", new TableInfo.Column("updated", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsDatabaseVideo.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsDatabaseVideo.put("description", new TableInfo.Column("description", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsDatabaseVideo.put("thumbnail", new TableInfo.Column("thumbnail", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysDatabaseVideo = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesDatabaseVideo = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoDatabaseVideo = new TableInfo("DatabaseVideo", _columnsDatabaseVideo, _foreignKeysDatabaseVideo, _indicesDatabaseVideo);
         final TableInfo _existingDatabaseVideo = TableInfo.read(_db, "DatabaseVideo");
         if (! _infoDatabaseVideo.equals(_existingDatabaseVideo)) {
-          throw new IllegalStateException("Migration didn't properly handle DatabaseVideo(com.example.android.devbyteviewer.database.DatabaseVideo).\n"
+          return new RoomOpenHelper.ValidationResult(false, "DatabaseVideo(com.example.android.devbyteviewer.database.DatabaseVideo).\n"
                   + " Expected:\n" + _infoDatabaseVideo + "\n"
                   + " Found:\n" + _existingDatabaseVideo);
         }
+        return new RoomOpenHelper.ValidationResult(true, null);
       }
     }, "476a1b31bec62073ae29ab92ddd8c406", "daf12d7f37ddf91e77e6f02901c6c946");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(configuration.context)
@@ -118,6 +130,24 @@ public final class VideosDatabase_Impl extends VideosDatabase {
         _db.execSQL("VACUUM");
       }
     }
+  }
+
+  @Override
+  protected Map<Class<?>, List<Class<?>>> getRequiredTypeConverters() {
+    final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
+    _typeConvertersMap.put(VideoDao.class, VideoDao_Impl.getRequiredConverters());
+    return _typeConvertersMap;
+  }
+
+  @Override
+  protected Set<Class<? extends AutoMigrationSpec>> getRequiredAutoMigrationSpecs() {
+    final HashSet<Class<? extends AutoMigrationSpec>> _autoMigrationSpecsSet = new HashSet<Class<? extends AutoMigrationSpec>>();
+    return _autoMigrationSpecsSet;
+  }
+
+  @Override
+  protected List<Migration> getAutoMigrations() {
+    return Arrays.asList();
   }
 
   @Override
